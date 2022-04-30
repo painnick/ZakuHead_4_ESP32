@@ -57,12 +57,11 @@ typedef struct {
 
 #define SERVO_STEP   5
 
-Servo servoN1;
-Servo servoN2;
+Servo servoN1; // For Camera
+Servo servoN2; // For Camera
 Servo servo1;
 
 int servo1Pos = 90;
-int servo2Pos = 0;
 
 static const char* _STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
 static const char* _STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
@@ -310,21 +309,21 @@ static esp_err_t cmd_handler(httpd_req_t *req){
 
   int res = 0;
   
-  if(!strcmp(variable, "up")) { // LEFT
+  if(!strcmp(variable, "left")) {
     if(servo1Pos <= 170) {
       servo1Pos += 10;
       servo1.write(servo1Pos);
     }
     Serial.println(servo1Pos);
-    Serial.println("Up");
+    Serial.println("Left");
   }
-  else if(!strcmp(variable, "down")) { // RIGHT
+  else if(!strcmp(variable, "right")) {
     if(servo1Pos >= 10) {
       servo1Pos -= 10;
       servo1.write(servo1Pos);
     }
     Serial.println(servo1Pos);
-    Serial.println("Down");
+    Serial.println("Right");
   }
   else {
     res = -1;
