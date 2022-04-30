@@ -54,14 +54,12 @@ typedef struct {
 #endif
 
 #define SERVO_1      14
-#define SERVO_2      15
 
 #define SERVO_STEP   5
 
 Servo servoN1;
 Servo servoN2;
 Servo servo1;
-Servo servo2;
 
 int servo1Pos = 90;
 int servo2Pos = 0;
@@ -312,7 +310,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
 
   int res = 0;
   
-  if(!strcmp(variable, "up")) {
+  if(!strcmp(variable, "up")) { // LEFT
     if(servo1Pos <= 170) {
       servo1Pos += 10;
       servo1.write(servo1Pos);
@@ -320,23 +318,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     Serial.println(servo1Pos);
     Serial.println("Up");
   }
-  else if(!strcmp(variable, "left")) {
-    if(servo2Pos <= 170) {
-      servo2Pos += 10;
-      servo2.write(servo2Pos);
-    }
-    Serial.println(servo2Pos);
-    Serial.println("Left");
-  }
-  else if(!strcmp(variable, "right")) {
-    if(servo2Pos >= 10) {
-      servo2Pos -= 10;
-      servo2.write(servo2Pos);
-    }
-    Serial.println(servo2Pos);
-    Serial.println("Right");
-  }
-  else if(!strcmp(variable, "down")) {
+  else if(!strcmp(variable, "down")) { // RIGHT
     if(servo1Pos >= 10) {
       servo1Pos -= 10;
       servo1.write(servo1Pos);
@@ -399,15 +381,12 @@ void startCameraServer(){
 void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
   servo1.setPeriodHertz(50);    // standard 50 hz servo
-  servo2.setPeriodHertz(50);    // standard 50 hz servo
   servoN1.attach(2, 1000, 2000);
   servoN2.attach(13, 1000, 2000);
   
   servo1.attach(SERVO_1, 1000, 2000);
-  servo2.attach(SERVO_2, 1000, 2000);
   
   servo1.write(servo1Pos);
-  servo2.write(servo2Pos);
   
   Serial.begin(115200);
   Serial.setDebugOutput(false);
