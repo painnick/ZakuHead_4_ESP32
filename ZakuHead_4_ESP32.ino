@@ -6,6 +6,8 @@
   The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 *********/
 
+#define USE_SERIAL_DEBUG
+
 #include "esp_camera.h"
 #include <WiFi.h>
 #include "esp_timer.h"
@@ -84,7 +86,9 @@ static esp_err_t capture_handler(httpd_req_t *req){
 
     fb = esp_camera_fb_get();
     if (!fb) {
+        #ifdef USE_SERIAL_DEBUG
         Serial.println("Camera capture failed");
+        #endif
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
@@ -111,14 +115,18 @@ static esp_err_t capture_handler(httpd_req_t *req){
         }
         esp_camera_fb_return(fb);
         int64_t fr_end = esp_timer_get_time();
+        #ifdef USE_SERIAL_DEBUG
         Serial.printf("JPG: %uB %ums\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
+        #endif
         return res;
     }
 
     dl_matrix3du_t *image_matrix = dl_matrix3du_alloc(1, fb->width, fb->height, 3);
     if (!image_matrix) {
         esp_camera_fb_return(fb);
+        #ifdef USE_SERIAL_DEBUG
         Serial.println("dl_matrix3du_alloc failed");
+        #endif
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
@@ -132,7 +140,9 @@ static esp_err_t capture_handler(httpd_req_t *req){
     esp_camera_fb_return(fb);
     if(!s){
         dl_matrix3du_free(image_matrix);
+        #ifdef USE_SERIAL_DEBUG
         Serial.println("to rgb888 failed");
+        #endif
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
@@ -141,7 +151,9 @@ static esp_err_t capture_handler(httpd_req_t *req){
     s = fmt2jpg_cb(out_buf, out_len, out_width, out_height, PIXFORMAT_RGB888, 90, jpg_encode_stream, &jchunk);
     dl_matrix3du_free(image_matrix);
     if(!s){
+        #ifdef USE_SERIAL_DEBUG
         Serial.println("JPEG compression failed");
+        #endif
         return ESP_FAIL;
     }
 
@@ -191,16 +203,20 @@ static esp_err_t cmd_handler(httpd_req_t *req){
       servo1Pos += 10;
       servo1.write(servo1Pos);
     }
+    #ifdef USE_SERIAL_DEBUG
     Serial.println(servo1Pos);
     Serial.println("Left");
+    #endif
   }
   else if(!strcmp(variable, "right")) {
     if(servo1Pos >= 10) {
       servo1Pos -= 10;
       servo1.write(servo1Pos);
     }
+    #ifdef USE_SERIAL_DEBUG
     Serial.println(servo1Pos);
     Serial.println("Right");
+    #endif
   }
   else {
     res = -1;
@@ -245,8 +261,10 @@ void setup() {
   
   servo1.write(servo1Pos);
   
+  #ifdef USE_SERIAL_DEBUG
   Serial.begin(115200);
   Serial.setDebugOutput(false);
+  #endif
   
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -283,20 +301,26 @@ void setup() {
   // Camera init
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
+    #ifdef USE_SERIAL_DEBUG
     Serial.printf("Camera init failed with error 0x%x", err);
+    #endif
     return;
   }
   // Wi-Fi connection
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
+    #ifdef USE_SERIAL_DEBUG
     Serial.print(".");
+    #endif
   }
+  #ifdef USE_SERIAL_DEBUG
   Serial.println("");
   Serial.println("WiFi connected");
   
   Serial.print("Camera Stream Ready! Go to: http://");
   Serial.println(WiFi.localIP());
+  #endif
   
   // Start streaming web server
   startCameraServer();
