@@ -161,7 +161,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     return res;
 }
 
-static esp_err_t cmd_handler(httpd_req_t *req){
+static esp_err_t servo_handler(httpd_req_t *req){
   char*  buf;
   size_t buf_len;
   char variable[32] = {0,};
@@ -174,7 +174,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
       return ESP_FAIL;
     }
     if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
-      if (httpd_query_key_value(buf, "go", variable, sizeof(variable)) == ESP_OK) {
+      if (httpd_query_key_value(buf, "dir", variable, sizeof(variable)) == ESP_OK) {
       } else {
         free(buf);
         httpd_resp_send_404(req);
@@ -231,13 +231,67 @@ static esp_err_t cmd_handler(httpd_req_t *req){
   return httpd_resp_send(req, NULL, 0);
 }
 
+static esp_err_t led_handler(httpd_req_t *req){
+  char*  buf;
+  size_t buf_len;
+  char variable[32] = {0,};
+  
+  buf_len = httpd_req_get_url_query_len(req) + 1;
+  if (buf_len > 1) {
+    buf = (char*)malloc(buf_len);
+    if(!buf){
+      httpd_resp_send_500(req);
+      return ESP_FAIL;
+    }
+    if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
+      if (httpd_query_key_value(buf, "bright", variable, sizeof(variable)) == ESP_OK) {
+      } else {
+        free(buf);
+        httpd_resp_send_404(req);
+        return ESP_FAIL;
+      }
+    } else {
+      free(buf);
+      httpd_resp_send_404(req);
+      return ESP_FAIL;
+    }
+    free(buf);
+  } else {
+    httpd_resp_send_404(req);
+    return ESP_FAIL;
+  }
+
+  int bright = atoi(variable);
+
+  int res = 0;
+
+  if ((0 <= bright) && (bright < 256)) {
+    analogWrite(EYE_LED_PIN, bright);
+  } else {
+    res = -1;
+  }
+
+  if(res){
+    return httpd_resp_send_500(req);
+  }
+
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+  return httpd_resp_send(req, NULL, 0);
+}
+
 void startCameraServer(){
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
   config.server_port = 80;
-  httpd_uri_t cmd_uri = {
-    .uri       = "/action",
+  httpd_uri_t servo_uri = {
+    .uri       = "/servo",
     .method    = HTTP_GET,
-    .handler   = cmd_handler,
+    .handler   = servo_handler,
+    .user_ctx  = NULL
+  };
+  httpd_uri_t led_uri = {
+    .uri       = "/led",
+    .method    = HTTP_GET,
+    .handler   = led_handler,
     .user_ctx  = NULL
   };
   httpd_uri_t capture_uri = {
@@ -247,7 +301,8 @@ void startCameraServer(){
     .user_ctx  = NULL
   };
   if (httpd_start(&camera_httpd, &config) == ESP_OK) {
-    httpd_register_uri_handler(camera_httpd, &cmd_uri);
+    httpd_register_uri_handler(camera_httpd, &servo_uri);
+    httpd_register_uri_handler(camera_httpd, &led_uri);
     httpd_register_uri_handler(camera_httpd, &capture_uri);
   }
 }
