@@ -55,7 +55,8 @@ typedef struct {
   #error "Camera model not selected"
 #endif
 
-#define SERVO_1      14
+#define SERVO_PIN     14
+#define EYE_LED_PIN   15
 
 #define SERVO_STEP   5
 
@@ -257,13 +258,20 @@ void setup() {
   servoN1.attach(2, 1000, 2000);
   servoN2.attach(13, 1000, 2000);
   
-  servo1.attach(SERVO_1, 1000, 2000);
+  servo1.attach(SERVO_PIN, 1000, 2000);
   
   servo1.write(servo1Pos);
   
   #ifdef USE_SERIAL_DEBUG
   Serial.begin(115200);
   Serial.setDebugOutput(false);
+  #endif
+
+  pinMode(EYE_LED_PIN, OUTPUT);
+  #ifdef USE_SERIAL_DEBUG
+  analogWrite(EYE_LED_PIN, 4);
+  #else
+  analogWrite(EYE_LED_PIN, 11);
   #endif
   
   camera_config_t config;
