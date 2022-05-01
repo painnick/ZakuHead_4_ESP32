@@ -11,7 +11,7 @@ ZakuServo::ZakuServo(uint8_t servo_pin) : servo_pin(servo_pin), servo1Pos(90) {
 void ZakuServo::setup() {
   servo1->setPeriodHertz(50);    // standard 50 hz servo
   servoN1->attach(2, 1000, 2000);
-  servoN2->attach(13, 1000, 2000);
+  servoN2->attach(16, 1000, 2000);
   
   servo1->attach(servo_pin, 1000, 2000);
   
