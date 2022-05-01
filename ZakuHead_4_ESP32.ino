@@ -18,9 +18,9 @@
 #include "soc/soc.h"             // disable brownout problems
 #include "soc/rtc_cntl_reg.h"    // disable brownout problems
 #include "esp_http_server.h"
-#include <ESP32Servo.h>
 
 #include "zaku_leds.h"
+#include "zaku_servo.h"
 
 // Replace with your network credentials
 const char* ssid = "painwork";
@@ -62,12 +62,7 @@ typedef struct {
 #define EYE_ORANGE_PIN 12
 
 ZakuLEDs mono_eye_leds = ZakuLEDs(EYE_RED_PIN, EYE_ORANGE_PIN);
-
-Servo servoN1; // For Camera
-Servo servoN2; // For Camera
-Servo servo1;
-
-int servo1Pos = 90;
+ZakuServo servo = ZakuServo(SERVO_PIN);
 
 httpd_handle_t camera_httpd = NULL;
 
@@ -211,23 +206,17 @@ static esp_err_t servo_handler(httpd_req_t *req){
   int res = 0;
   
   if(!strcmp(direction, "left")) {
-    if(servo1Pos <= 170) {
-      servo1Pos += angle;
-      servo1.write(servo1Pos);
-    }
+    uint32_t pos = servo.left(angle);
     #ifdef USE_SERIAL_DEBUG
-    Serial.println(servo1Pos);
-    Serial.println("Left");
+    Serial.print("Left - ");
+    Serial.println(pos);
     #endif
   }
   else if(!strcmp(direction, "right")) {
-    if(servo1Pos >= 10) {
-      servo1Pos -= angle;
-      servo1.write(servo1Pos);
-    }
+    uint32_t pos = servo.right(angle);
     #ifdef USE_SERIAL_DEBUG
-    Serial.println(servo1Pos);
-    Serial.println("Right");
+    Serial.print("Right - ");
+    Serial.println(pos);
     #endif
   }
   else {
@@ -321,18 +310,13 @@ void startCameraServer(){
 
 void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
-  servo1.setPeriodHertz(50);    // standard 50 hz servo
-  servoN1.attach(2, 1000, 2000);
-  servoN2.attach(13, 1000, 2000);
-  
-  servo1.attach(SERVO_PIN, 1000, 2000);
-  
-  servo1.write(servo1Pos);
-  
+
   #ifdef USE_SERIAL_DEBUG
   Serial.begin(115200);
   Serial.setDebugOutput(false);
   #endif
+
+  servo.setup();
 
   mono_eye_leds.red(4);
   mono_eye_leds.orange(2);
