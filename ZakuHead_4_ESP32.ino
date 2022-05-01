@@ -20,6 +20,8 @@
 #include "esp_http_server.h"
 #include <ESP32Servo.h>
 
+#include "leds.h"
+
 // Replace with your network credentials
 const char* ssid = "painwork";
 const char* password = "Goddess444";
@@ -59,7 +61,7 @@ typedef struct {
 #define EYE_RED_PIN    15
 #define EYE_ORANGE_PIN 12
 
-#define SERVO_STEP   5
+LEDs mono_eye_leds = LEDs(EYE_RED_PIN, EYE_ORANGE_PIN);
 
 Servo servoN1; // For Camera
 Servo servoN2; // For Camera
@@ -275,8 +277,8 @@ static esp_err_t led_handler(httpd_req_t *req){
   int res = 0;
 
   if ((0 <= bright) && (bright < 256)) {
-    analogWrite(EYE_RED_PIN, bright);
-    analogWrite(EYE_ORANGE_PIN, bright);
+    mono_eye_leds.red(bright);
+    mono_eye_leds.orange(bright);
   } else {
     res = -1;
   }
@@ -332,10 +334,8 @@ void setup() {
   Serial.setDebugOutput(false);
   #endif
 
-  pinMode(EYE_RED_PIN, OUTPUT);
-  pinMode(EYE_ORANGE_PIN, OUTPUT);
-  analogWrite(EYE_RED_PIN, 4);
-  analogWrite(EYE_ORANGE_PIN, 2);
+  mono_eye_leds.red(4);
+  mono_eye_leds.orange(2);
   
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -377,6 +377,7 @@ void setup() {
     #endif
     return;
   }
+
   // Wi-Fi connection
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
