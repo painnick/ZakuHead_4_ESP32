@@ -18,7 +18,7 @@ void ZakuServo::setup() {
   servo1->write(servo1Pos);
 }
 
-uint32_t ZakuServo::left(uint32_t step) {
+uint32_t ZakuServo::left(int step) {
     if(servo1Pos <= 170) {
         servo1Pos += step;
         servo1->write(servo1Pos);
@@ -26,7 +26,7 @@ uint32_t ZakuServo::left(uint32_t step) {
     return servo1Pos;
 }
 
-uint32_t ZakuServo::right(uint32_t step) {
+uint32_t ZakuServo::right(int step) {
     if(servo1Pos >= 10) {
       servo1Pos -= step;
       servo1->write(servo1Pos);
