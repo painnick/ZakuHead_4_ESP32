@@ -165,7 +165,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
 static esp_err_t servo_handler(httpd_req_t *req){
   char*  buf;
   size_t buf_len;
-  char variable[32] = {0,};
+  char direction[32] = {0,}, step[5] = {0,};
   
   buf_len = httpd_req_get_url_query_len(req) + 1;
   if (buf_len > 1) {
@@ -175,7 +175,13 @@ static esp_err_t servo_handler(httpd_req_t *req){
       return ESP_FAIL;
     }
     if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
-      if (httpd_query_key_value(buf, "dir", variable, sizeof(variable)) == ESP_OK) {
+      if (httpd_query_key_value(buf, "dir", direction, sizeof(direction)) == ESP_OK) {
+      } else {
+        free(buf);
+        httpd_resp_send_404(req);
+        return ESP_FAIL;
+      }
+      if (httpd_query_key_value(buf, "step", step, sizeof(step)) == ESP_OK) {
       } else {
         free(buf);
         httpd_resp_send_404(req);
@@ -192,6 +198,8 @@ static esp_err_t servo_handler(httpd_req_t *req){
     return ESP_FAIL;
   }
 
+  int angle = atoi(step);
+
   sensor_t * s = esp_camera_sensor_get();
   //flip the camera vertically
   //s->set_vflip(s, 1);          // 0 = disable , 1 = enable
@@ -200,9 +208,9 @@ static esp_err_t servo_handler(httpd_req_t *req){
 
   int res = 0;
   
-  if(!strcmp(variable, "left")) {
+  if(!strcmp(direction, "left")) {
     if(servo1Pos <= 170) {
-      servo1Pos += 10;
+      servo1Pos += angle;
       servo1.write(servo1Pos);
     }
     #ifdef USE_SERIAL_DEBUG
@@ -210,9 +218,9 @@ static esp_err_t servo_handler(httpd_req_t *req){
     Serial.println("Left");
     #endif
   }
-  else if(!strcmp(variable, "right")) {
+  else if(!strcmp(direction, "right")) {
     if(servo1Pos >= 10) {
-      servo1Pos -= 10;
+      servo1Pos -= angle;
       servo1.write(servo1Pos);
     }
     #ifdef USE_SERIAL_DEBUG
@@ -352,7 +360,7 @@ void setup() {
   config.pixel_format = PIXFORMAT_JPEG; 
   
   if(psramFound()){
-    config.frame_size = FRAMESIZE_QVGA;
+    config.frame_size = FRAMESIZE_VGA;
     config.jpeg_quality = 10;
     config.fb_count = 2;
   } else {
