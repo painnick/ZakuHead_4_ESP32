@@ -64,8 +64,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
 
     fb = esp_camera_fb_get();
     if (!fb) {
-        if (Serial.available())
-          Serial.println("Camera capture failed");
+        Serial.println("Camera capture failed");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
@@ -92,16 +91,14 @@ static esp_err_t capture_handler(httpd_req_t *req){
         }
         esp_camera_fb_return(fb);
         int64_t fr_end = esp_timer_get_time();
-        if (Serial.available())
-          Serial.printf("JPG: %uB %ums\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
+        Serial.printf("JPG: %uB %ums\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
         return res;
     }
 
     dl_matrix3du_t *image_matrix = dl_matrix3du_alloc(1, fb->width, fb->height, 3);
     if (!image_matrix) {
         esp_camera_fb_return(fb);
-        if (Serial.available())
-          Serial.println("dl_matrix3du_alloc failed");
+        Serial.println("dl_matrix3du_alloc failed");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
@@ -115,8 +112,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     esp_camera_fb_return(fb);
     if(!s){
         dl_matrix3du_free(image_matrix);
-        if (Serial.available())
-          Serial.println("to rgb888 failed");
+        Serial.println("to rgb888 failed");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
@@ -125,8 +121,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     s = fmt2jpg_cb(out_buf, out_len, out_width, out_height, PIXFORMAT_RGB888, 90, jpg_encode_stream, &jchunk);
     dl_matrix3du_free(image_matrix);
     if(!s){
-        if (Serial.available())
-          Serial.println("JPEG compression failed");
+        Serial.println("JPEG compression failed");
         return ESP_FAIL;
     }
 
@@ -142,6 +137,7 @@ static esp_err_t servo_handler(httpd_req_t *req){
   if (buf_len > 1) {
     buf = (char*)malloc(buf_len);
     if(!buf){
+      Serial.println("servo_handler : malloc failed");
       httpd_resp_send_500(req);
       return ESP_FAIL;
     }
@@ -177,28 +173,19 @@ static esp_err_t servo_handler(httpd_req_t *req){
   // mirror effect
   //s->set_hmirror(s, 1);          // 0 = disable , 1 = enable
 
-  int res = 0;
-  
   if(!strcmp(direction, "left")) {
     uint32_t pos = zakuServo.left(angle);
-    if (Serial.available()) {
-      Serial.print("Left - ");
-      Serial.println(pos);
-    }
+    Serial.print("Left - ");
+    Serial.println(pos);
   }
   else if(!strcmp(direction, "right")) {
     uint32_t pos = zakuServo.right(angle);
-    if (Serial.available()) {
-      Serial.print("Right - ");
-      Serial.println(pos);
-    }
+    Serial.print("Right - ");
+    Serial.println(pos);
   }
   else {
-    res = -1;
-  }
-
-  if(res){
-    return httpd_resp_send_500(req);
+    Serial.print("Wrong direction : ");
+    Serial.println(direction);
   }
 
   httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
@@ -290,8 +277,7 @@ void initCameraServer() {
   // Camera init
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
-    if (Serial.available())
-      Serial.printf("Camera init failed with error 0x%x", err);
+    Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
 
@@ -299,16 +285,13 @@ void initCameraServer() {
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    if (Serial.available())
-      Serial.print(".");
+    Serial.print(".");
   }
-  if (Serial.available()) {
-    Serial.println("");
-    Serial.println("WiFi connected");
-    
-    Serial.print("Camera Stream Ready! Go to: http://");
-    Serial.println(WiFi.localIP());
-  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+  
+  Serial.print("Camera Stream Ready! Go to: http://");
+  Serial.println(WiFi.localIP());
 }
 
 void startCameraServer(){
