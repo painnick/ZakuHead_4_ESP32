@@ -61,7 +61,7 @@ typedef struct {
 #define EYE_RED_PIN    15
 #define EYE_ORANGE_PIN 12
 
-LEDs mono_eye_leds = LEDs(EYE_RED_PIN, EYE_ORANGE_PIN);
+ZakuLEDs mono_eye_leds = ZakuLEDs(EYE_RED_PIN, EYE_ORANGE_PIN);
 
 Servo servoN1; // For Camera
 Servo servoN2; // For Camera

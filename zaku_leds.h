@@ -1,8 +1,8 @@
 #include "Arduino.h"
 
-class LEDs {
+class ZakuLEDs {
 public:
-    LEDs(uint8_t red_pin_no, uint8_t orange_pin_no);
+    ZakuLEDs(uint8_t red_pin_no, uint8_t orange_pin_no);
     void red(uint16_t bright);
     void orange(uint16_t bright);
 private:
