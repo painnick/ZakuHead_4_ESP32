@@ -173,6 +173,9 @@ static esp_err_t servo_handler(httpd_req_t *req){
   // mirror effect
   //s->set_hmirror(s, 1);          // 0 = disable , 1 = enable
 
+  mono_eye_leds.red(4);
+  mono_eye_leds.orange(2);
+
   if(!strcmp(direction, "left")) {
     uint32_t pos = zakuServo.left(angle);
     Serial.print("Left - ");

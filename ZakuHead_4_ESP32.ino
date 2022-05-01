@@ -28,9 +28,6 @@ void setup() {
 
   zakuServo.setup();
 
-  mono_eye_leds.red(4);
-  mono_eye_leds.orange(2);
-  
   initCameraServer();
   startCameraServer();
 }
