@@ -7,8 +7,8 @@ class ZakuServo {
 public:
     ZakuServo(uint8_t servo_pin);
     void setup();
-    uint32_t left(int step);
-    uint32_t right(int step);
+    int left(int step);
+    int right(int step);
 private:
     Servo* servoN1; // For Camera
     Servo* servoN2; // For Camera

@@ -3,9 +3,9 @@
 ZakuServo zakuServo = ZakuServo(SERVO_PIN);
 
 ZakuServo::ZakuServo(uint8_t servo_pin) : servo_pin(servo_pin), servo1Pos(90) {
-    servoN1 = new Servo();
-    servoN2 = new Servo();
-    servo1 = new Servo();
+  servoN1 = new Servo();
+  servoN2 = new Servo();
+  servo1 = new Servo();
 }
 
 void ZakuServo::setup() {
@@ -18,18 +18,14 @@ void ZakuServo::setup() {
   servo1->write(servo1Pos);
 }
 
-uint32_t ZakuServo::left(int step) {
-    if(servo1Pos <= 170) {
-        servo1Pos += step;
-        servo1->write(servo1Pos);
-    }
-    return servo1Pos;
+int ZakuServo::left(int step) {
+  servo1Pos = min(servo1Pos + step, 170);
+  servo1->write(servo1Pos);
+  return servo1Pos;
 }
 
-uint32_t ZakuServo::right(int step) {
-    if(servo1Pos >= 10) {
-      servo1Pos -= step;
-      servo1->write(servo1Pos);
-    }
-    return servo1Pos;
+int ZakuServo::right(int step) {
+  servo1Pos = max(servo1Pos - step, 10);
+  servo1->write(servo1Pos);
+  return servo1Pos;
 }
