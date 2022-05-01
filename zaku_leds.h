@@ -1,3 +1,6 @@
+#ifndef ZAKU_LEDS_h
+#define ZAKU_LEDS_h
+
 #include "Arduino.h"
 
 class ZakuLEDs {
@@ -8,3 +11,10 @@ public:
 private:
     uint8_t RED_PIN, ORANGE_PIN;
 };
+
+#define EYE_RED_PIN    15
+#define EYE_ORANGE_PIN 12
+
+extern ZakuLEDs mono_eye_leds;
+
+#endif /* ZAKU_LEDS_h */

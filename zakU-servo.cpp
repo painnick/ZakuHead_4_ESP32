@@ -1,5 +1,7 @@
 #include "zaku_servo.h"
 
+ZakuServo zakuServo = ZakuServo(SERVO_PIN);
+
 ZakuServo::ZakuServo(uint8_t servo_pin) : servo_pin(servo_pin), servo1Pos(90) {
     servoN1 = new Servo();
     servoN2 = new Servo();

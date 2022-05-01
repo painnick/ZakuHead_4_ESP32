@@ -1,3 +1,6 @@
+#ifndef ZAKU_SERVO_h
+#define ZAKU_SERVO_h
+
 #include <ESP32Servo.h>
 
 class ZakuServo {
@@ -14,4 +17,7 @@ private:
     int servo1Pos;
 };
 
+#define SERVO_PIN      14
+extern ZakuServo zakuServo;
 
+#endif /* ZAKU_SERVO_h */
