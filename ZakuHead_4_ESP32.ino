@@ -31,8 +31,6 @@ typedef struct {
         size_t len;
 } jpg_chunking_t;
 
-#define PART_BOUNDARY "123456789000000000000987654321"
-
 #define CAMERA_MODEL_AI_THINKER
 
 #if defined(CAMERA_MODEL_AI_THINKER)
