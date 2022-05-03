@@ -244,7 +244,7 @@ static esp_err_t led_handler(httpd_req_t *req){
   return httpd_resp_send(req, NULL, 0);
 }
 
-void initCameraServer() {
+void initCamera() {
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -283,7 +283,9 @@ void initCameraServer() {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
+}
 
+void initCameraServer() {
   // Wi-Fi connection
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {

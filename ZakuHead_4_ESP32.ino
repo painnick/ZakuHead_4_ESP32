@@ -15,6 +15,7 @@
 #include "zaku_leds.h"
 #include "zaku_servo.h"
 
+void initCamera();
 void initCameraServer();
 void startCameraServer();
 
@@ -28,6 +29,7 @@ void setup() {
 
   zakuServo.setup();
 
+  initCamera();
   initCameraServer();
   startCameraServer();
 }
