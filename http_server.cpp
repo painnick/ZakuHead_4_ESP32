@@ -38,11 +38,6 @@ typedef struct {
         size_t len;
 } jpg_chunking_t;
 
-
-// Replace with your network credentials
-const char* ssid = "painwork";
-const char* password = "Goddess444";
-
 httpd_handle_t camera_httpd = NULL;
 
 static size_t jpg_encode_stream(void * arg, size_t index, const void* data, size_t len){
@@ -285,18 +280,56 @@ void initCamera() {
   }
 }
 
+#define WIFI_RETRY_COUNT 20
+
 void initCameraServer() {
-  // Wi-Fi connection
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  while (true) {
+    Serial.println("Type ssid and password");
+    Serial.println("ex) my_ap my_password");
+
+    String ssid;
+    String password;
+
+    while(true) {
+      if(Serial.available()) {
+        String cmd = Serial.readString();
+        cmd.trim();
+        int seperator_index = cmd.indexOf(' ');
+        if(seperator_index > 0) {
+          ssid = cmd.substring(0, seperator_index);
+          password = cmd.substring(seperator_index + 1);
+          break;
+        } else {
+          Serial.println("Fail! Wrong format");
+          Serial.println("Re-type ssid and password");
+          Serial.println("ex) my_ap my_password");
+        }
+      }
+    }
+
+    // Wi-Fi connection
+    int tryCount = 0;
+    WiFi.begin(ssid.c_str(), password.c_str());
+    while (WiFi.status() != WL_CONNECTED) {
+      if (tryCount < WIFI_RETRY_COUNT) {
+        tryCount++;
+        delay(500);
+        Serial.print(".");
+      } else {
+        break;
+      }
+    }
+    Serial.println("");
+    if (tryCount < WIFI_RETRY_COUNT) {
+      Serial.println("WiFi connected");
+      
+      Serial.print("Camera Stream Ready! Go to: http://");
+      Serial.println(WiFi.localIP());
+      break;
+    } else {
+      Serial.println("WiFi not connected!");
+    }
   }
-  Serial.println("");
-  Serial.println("WiFi connected");
-  
-  Serial.print("Camera Stream Ready! Go to: http://");
-  Serial.println(WiFi.localIP());
 }
 
 void startCameraServer(){
