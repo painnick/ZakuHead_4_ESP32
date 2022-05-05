@@ -9,6 +9,7 @@ public:
     void setup();
     int left(int step);
     int right(int step);
+    int set(int angle);
 private:
     Servo* servoN1; // For Camera
     Servo* servoN2; // For Camera
@@ -16,6 +17,9 @@ private:
     uint8_t servo_pin;
     int servo1Pos;
 };
+
+#define MONO_EYE_MIN_ANGLE  10
+#define MONO_EYE_MAX_ANGLE 170
 
 #define SERVO_PIN      14
 extern ZakuServo zakuServo;

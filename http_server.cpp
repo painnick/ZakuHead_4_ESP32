@@ -6,6 +6,7 @@
 #include "fd_forward.h"
 #include "esp_http_server.h"
 
+#include "zaku_status.h"
 #include "zaku_leds.h"
 #include "zaku_servo.h"
 
@@ -32,6 +33,8 @@
 #else
   #error "Camera model not selected"
 #endif
+
+time_t last_catch;
 
 typedef struct {
         httpd_req_t *req;
@@ -126,7 +129,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
 static esp_err_t servo_handler(httpd_req_t *req){
   char*  buf;
   size_t buf_len;
-  char direction[32] = {0,}, step[5] = {0,};
+  char direction[32] = {0,}, step[5] = {0,}, found[6] = {0,};
   
   buf_len = httpd_req_get_url_query_len(req) + 1;
   if (buf_len > 1) {
@@ -149,6 +152,12 @@ static esp_err_t servo_handler(httpd_req_t *req){
         httpd_resp_send_404(req);
         return ESP_FAIL;
       }
+      if (httpd_query_key_value(buf, "found", found, sizeof(found)) == ESP_OK) {
+      } else {
+        free(buf);
+        httpd_resp_send_404(req);
+        return ESP_FAIL;
+      }
     } else {
       free(buf);
       httpd_resp_send_404(req);
@@ -160,6 +169,12 @@ static esp_err_t servo_handler(httpd_req_t *req){
     return ESP_FAIL;
   }
 
+  if(!strcmp(found, "true")) {
+    mono_eye_leds.red(4);
+    mono_eye_leds.orange(2);
+    time(&last_catch);
+  }
+
   int angle = atoi(step);
 
   sensor_t * s = esp_camera_sensor_get();
@@ -167,9 +182,6 @@ static esp_err_t servo_handler(httpd_req_t *req){
   //s->set_vflip(s, 1);          // 0 = disable , 1 = enable
   // mirror effect
   //s->set_hmirror(s, 1);          // 0 = disable , 1 = enable
-
-  mono_eye_leds.red(4);
-  mono_eye_leds.orange(2);
 
   if(!strcmp(direction, "left")) {
     uint32_t pos = zakuServo.left(angle);

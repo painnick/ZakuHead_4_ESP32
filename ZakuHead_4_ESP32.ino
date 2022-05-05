@@ -12,6 +12,7 @@
 #include "soc/soc.h"             // disable brownout problems
 #include "soc/rtc_cntl_reg.h"    // disable brownout problems
 
+#include "zaku_status.h"
 #include "zaku_leds.h"
 #include "zaku_servo.h"
 
@@ -20,6 +21,7 @@ void initCameraServer();
 void startCameraServer();
 
 void setup() {
+
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
 
   #ifdef USE_SERIAL_DEBUG
@@ -32,8 +34,23 @@ void setup() {
   initCamera();
   initCameraServer();
   startCameraServer();
+
+  time(&last_catch);
 }
 
 void loop() {
-  
+  time_t now;
+  time(&now);
+
+  Serial.print("Diff : ");
+  Serial.println(now - last_catch);
+
+  if (now - last_catch > 5) {
+    Serial.println("Sleep...");
+    int angle = random(MONO_EYE_MIN_ANGLE, MONO_EYE_MAX_ANGLE);
+    zakuServo.set(angle);
+    delay(2000);
+  } else {
+    delay(1000);
+  }
 }
