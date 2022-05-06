@@ -20,6 +20,8 @@ void initCamera();
 void initCameraServer();
 void startCameraServer();
 
+void breath();
+
 time_t now;
 time_t last_random_move;
 
@@ -47,6 +49,7 @@ void loop() {
 
   if (now - last_catch > 15) {
     // Sleeping
+    breath();
   } else if (now - last_catch > 5) {
     if (now - last_random_move > 2) {
       time(&last_random_move);
