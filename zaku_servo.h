@@ -10,6 +10,7 @@ public:
     int left(int step);
     int right(int step);
     int set(int angle);
+    int hang_around();
     int angle();
 private:
     Servo* servoN1; // For Camera
@@ -17,6 +18,7 @@ private:
     Servo* servo1;
     uint8_t servo_pin;
     int servo1Pos;
+    int direction;
 };
 
 #define MONO_EYE_MIN_ANGLE  10

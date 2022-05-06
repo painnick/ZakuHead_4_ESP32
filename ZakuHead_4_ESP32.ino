@@ -47,14 +47,13 @@ void setup() {
 void loop() {
   time(&now);
 
-  if (now - last_catch > 15) {
+  if (now - last_catch > 60) {
     // Sleeping
     breath();
   } else if (now - last_catch > 5) {
-    if (now - last_random_move > 2) {
+    if (now - last_random_move > 1) {
       time(&last_random_move);
-      int angle = random(MONO_EYE_MIN_ANGLE, MONO_EYE_MAX_ANGLE);
-      zakuServo.set(angle);
+      zakuServo.hang_around();
     }
   } else {
     // Found
