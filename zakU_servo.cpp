@@ -18,6 +18,10 @@ void ZakuServo::setup() {
   servo1->write(servo1Pos);
 }
 
+int ZakuServo::angle() {
+  return servo1Pos;
+}
+
 int ZakuServo::left(int step) {
   servo1Pos = min(servo1Pos + step, MONO_EYE_MAX_ANGLE);
   servo1->write(servo1Pos);

@@ -130,6 +130,7 @@ static esp_err_t servo_handler(httpd_req_t *req){
   char*  buf;
   size_t buf_len;
   char direction[32] = {0,}, step[5] = {0,}, found[6] = {0,};
+  char body[18] = {0,};
   
   buf_len = httpd_req_get_url_query_len(req) + 1;
   if (buf_len > 1) {
@@ -170,8 +171,8 @@ static esp_err_t servo_handler(httpd_req_t *req){
   }
 
   if(!strcmp(found, "true")) {
-    mono_eye_leds.red(4);
-    mono_eye_leds.orange(2);
+//    mono_eye_leds.red(4);
+//    mono_eye_leds.orange(2);
     time(&last_catch);
   }
 
@@ -198,8 +199,10 @@ static esp_err_t servo_handler(httpd_req_t *req){
     Serial.println(direction);
   }
 
+  sprintf(body, "{\"angle\":%d}", zakuServo.angle());
+
   httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-  return httpd_resp_send(req, NULL, 0);
+  return httpd_resp_send(req, body, strlen(body));
 }
 
 static esp_err_t led_handler(httpd_req_t *req){

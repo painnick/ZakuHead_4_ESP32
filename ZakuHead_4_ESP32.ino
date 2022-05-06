@@ -20,6 +20,9 @@ void initCamera();
 void initCameraServer();
 void startCameraServer();
 
+time_t now;
+time_t last_random_move;
+
 void setup() {
 
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
@@ -36,21 +39,22 @@ void setup() {
   startCameraServer();
 
   time(&last_catch);
+  time(&last_random_move);
 }
 
 void loop() {
-  time_t now;
   time(&now);
 
-  Serial.print("Diff : ");
-  Serial.println(now - last_catch);
-
-  if (now - last_catch > 5) {
-    Serial.println("Sleep...");
-    int angle = random(MONO_EYE_MIN_ANGLE, MONO_EYE_MAX_ANGLE);
-    zakuServo.set(angle);
-    delay(2000);
+  if (now - last_catch > 15) {
+    // Sleeping
+  } else if (now - last_catch > 5) {
+    if (now - last_random_move > 2) {
+      time(&last_random_move);
+      int angle = random(MONO_EYE_MIN_ANGLE, MONO_EYE_MAX_ANGLE);
+      zakuServo.set(angle);
+    }
   } else {
-    delay(1000);
+    // Found
   }
+  delay(100);
 }

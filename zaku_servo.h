@@ -10,6 +10,7 @@ public:
     int left(int step);
     int right(int step);
     int set(int angle);
+    int angle();
 private:
     Servo* servoN1; // For Camera
     Servo* servoN2; // For Camera
