@@ -47,7 +47,7 @@ void setup() {
 void loop() {
   time(&now);
 
-  if (now - last_catch > 60) {
+  if (now - last_catch > 30) {
     // Sleeping
     breath();
   } else if (now - last_catch > 5) {
