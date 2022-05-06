@@ -48,10 +48,15 @@ void loop() {
   time(&now);
 
   if (now - last_catch > 30) {
+    // Reset
+    mono_eye_leds.red(0);
+    mono_eye_leds.orange(0);
+    time(&last_catch);
+  } else if (now - last_catch > 10) {
     // Sleeping
     breath();
-  } else if (now - last_catch > 5) {
-    if (now - last_random_move > 1) {
+  } else if (now - last_catch > 3) {
+    if (now - last_random_move > 0.3) {
       time(&last_random_move);
       zakuServo.hang_around();
     }
