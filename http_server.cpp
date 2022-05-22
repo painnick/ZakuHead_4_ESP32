@@ -5,6 +5,7 @@
 #include "fb_gfx.h"
 #include "fd_forward.h"
 #include "esp_http_server.h"
+#include "esp_wifi.h"
 
 #include "zaku_status.h"
 #include "zaku_leds.h"
@@ -34,12 +35,12 @@
   #error "Camera model not selected"
 #endif
 
-time_t last_catch;
-
 typedef struct {
         httpd_req_t *req;
         size_t len;
 } jpg_chunking_t;
+
+time_t last_catch;
 
 httpd_handle_t camera_httpd = NULL;
 
@@ -295,56 +296,92 @@ void initCamera() {
   }
 }
 
-#define WIFI_RETRY_COUNT 20
+#define SOFT_AP_SSID "ZakuHead4"
+#define SOFT_AP_PASSWORD "siegzeon"
+ 
+#define SOFT_AP_IP_ADDRESS_1 192
+#define SOFT_AP_IP_ADDRESS_2 168
+#define SOFT_AP_IP_ADDRESS_3 5
+#define SOFT_AP_IP_ADDRESS_4 18
+ 
+#define SOFT_AP_GW_ADDRESS_1 192
+#define SOFT_AP_GW_ADDRESS_2 168
+#define SOFT_AP_GW_ADDRESS_3 5
+#define SOFT_AP_GW_ADDRESS_4 20
+ 
+#define SOFT_AP_NM_ADDRESS_1 255
+#define SOFT_AP_NM_ADDRESS_2 255
+#define SOFT_AP_NM_ADDRESS_3 255
+#define SOFT_AP_NM_ADDRESS_4 0
+
+#define USE_SERIAL_DEBUG
+
+void startCameraServer();
+void stopCameraServer();
+
+esp_err_t wifiEventHandler(void* userParameter, system_event_t *event) {
+    switch(event->event_id){
+    case SYSTEM_EVENT_AP_STACONNECTED:
+        #ifdef USE_SERIAL_DEBUG
+        Serial.println("AP_STACONNECTED");
+        #endif
+        startCameraServer();
+        break;
+    case SYSTEM_EVENT_AP_STADISCONNECTED:
+        #ifdef USE_SERIAL_DEBUG
+        Serial.println("AP_STADISCONNECTED");
+        #endif
+        stopCameraServer();
+        break;
+    default:
+        #ifdef USE_SERIAL_DEBUG
+        Serial.print("WiFi evevnt ");
+        Serial.println(event->event_id);
+        #endif
+        break;
+    }
+    return ESP_OK;
+}
 
 void initCameraServer() {
-  while (true) {
-    Serial.println("Type ssid and password");
-    Serial.println("ex) my_ap my_password");
+    tcpip_adapter_init();
+    tcpip_adapter_dhcps_stop(TCPIP_ADAPTER_IF_AP);
+    tcpip_adapter_ip_info_t ipAddressInfo;
+    memset(&ipAddressInfo, 0, sizeof(ipAddressInfo));
+    IP4_ADDR(
+        &ipAddressInfo.ip,
+        SOFT_AP_IP_ADDRESS_1,
+        SOFT_AP_IP_ADDRESS_2,
+        SOFT_AP_IP_ADDRESS_3,
+        SOFT_AP_IP_ADDRESS_4);
+    IP4_ADDR(
+        &ipAddressInfo.gw,
+        SOFT_AP_GW_ADDRESS_1,
+        SOFT_AP_GW_ADDRESS_2,
+        SOFT_AP_GW_ADDRESS_3,
+        SOFT_AP_GW_ADDRESS_4);
+    IP4_ADDR(
+        &ipAddressInfo.netmask,
+        SOFT_AP_NM_ADDRESS_1,
+        SOFT_AP_NM_ADDRESS_2,
+        SOFT_AP_NM_ADDRESS_3,
+        SOFT_AP_NM_ADDRESS_4);
+    tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, &ipAddressInfo);
+    tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
+    esp_event_loop_init(wifiEventHandler, NULL);
+    wifi_init_config_t wifiConfiguration = WIFI_INIT_CONFIG_DEFAULT();
+    esp_wifi_init(&wifiConfiguration);
+    esp_wifi_set_mode(WIFI_MODE_AP);
 
-    String ssid;
-    String password;
+    wifi_config_t apConfiguration;
+    strcpy((char*)apConfiguration.ap.ssid, (char *)SOFT_AP_SSID);
+    apConfiguration.ap.ssid_len = 0;
+    apConfiguration.ap.ssid_hidden = 0;
+    apConfiguration.ap.beacon_interval = 150;
 
-    while(true) {
-      if(Serial.available()) {
-        String cmd = Serial.readString();
-        cmd.trim();
-        int seperator_index = cmd.indexOf(' ');
-        if(seperator_index > 0) {
-          ssid = cmd.substring(0, seperator_index);
-          password = cmd.substring(seperator_index + 1);
-          break;
-        } else {
-          Serial.println("Fail! Wrong format");
-          Serial.println("Re-type ssid and password");
-          Serial.println("ex) my_ap my_password");
-        }
-      }
-    }
-
-    // Wi-Fi connection
-    int tryCount = 0;
-    WiFi.begin(ssid.c_str(), password.c_str());
-    while (WiFi.status() != WL_CONNECTED) {
-      if (tryCount < WIFI_RETRY_COUNT) {
-        tryCount++;
-        delay(500);
-        Serial.print(".");
-      } else {
-        break;
-      }
-    }
-    Serial.println("");
-    if (tryCount < WIFI_RETRY_COUNT) {
-      Serial.println("WiFi connected");
-      
-      Serial.print("Camera Stream Ready! Go to: http://");
-      Serial.println(WiFi.localIP());
-      break;
-    } else {
-      Serial.println("WiFi not connected!");
-    }
-  }
+    esp_wifi_set_config(WIFI_IF_AP, &apConfiguration);
+    esp_wifi_set_storage(WIFI_STORAGE_RAM);
+    esp_wifi_start();
 }
 
 void startCameraServer(){
@@ -373,4 +410,10 @@ void startCameraServer(){
     httpd_register_uri_handler(camera_httpd, &led_uri);
     httpd_register_uri_handler(camera_httpd, &capture_uri);
   }
+}
+
+void stopCameraServer(){
+      if(camera_httpd != NULL){
+        httpd_stop(camera_httpd);
+    }
 }
